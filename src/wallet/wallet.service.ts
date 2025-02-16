@@ -83,6 +83,9 @@ export class WalletService implements OnApplicationShutdown, OnModuleDestroy{
 
     await this.cacheService.set(cacheKey, wallet);
     this.logger.log(`Wallet retrieved successfully: ID=${id}`);
+    if(wallet) {
+      wallet.balance = parseFloat(wallet.balance.toFixed(4))
+    }
     return wallet;
   }
 
