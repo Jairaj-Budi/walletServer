@@ -6,6 +6,8 @@ import { Connection, Model } from 'mongoose';
 import { Transaction, TransactionDocument } from 'src/transaction/transaction.schema';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
+import { CacheService } from 'src/common/services/cache.service';
+import { ClientSession } from 'mongoose';
 
 @Injectable()
 export class DatabaseTransactionsService implements OnApplicationShutdown, OnModuleDestroy {
@@ -13,7 +15,8 @@ export class DatabaseTransactionsService implements OnApplicationShutdown, OnMod
         @InjectModel(Wallet.name) private readonly walletModel: Model<WalletDocument>,
         @InjectConnection() private readonly connection: Connection,
         @InjectModel(Transaction.name) private transactionModel: Model<TransactionDocument>,
-        @Inject(CACHE_MANAGER) private cacheManager: Cache
+        @Inject(CACHE_MANAGER) private cacheManager: Cache,
+        private readonly cacheService: CacheService
     ) {}
 
     // Business Logic Layer
@@ -27,13 +30,14 @@ export class DatabaseTransactionsService implements OnApplicationShutdown, OnMod
         });
 
         const response = await newWallet.save({ session });
-        await this.setCache('wallet', createWalletDto, response);
-
+        const cacheKey = this.cacheService.createKey('wallet', JSON.stringify(createWalletDto));
+        await this.cacheService.set(cacheKey, response);
         return response;
     }
 
     async findWalletById(id: string): Promise<Wallet | null> {
-        const cacheData = await this.getCache('wallet', id);
+        const cacheKey = this.cacheService.createKey('wallet', id);
+        const cacheData = await this.cacheService.get<Wallet>(cacheKey);
         if (cacheData) {
             return cacheData;
         }
@@ -44,7 +48,7 @@ export class DatabaseTransactionsService implements OnApplicationShutdown, OnMod
             .lean()
             .exec();
 
-        await this.setCache('wallet', id, response);
+        await this.cacheService.set(cacheKey, response);
         return response;
     }
 
@@ -62,49 +66,34 @@ export class DatabaseTransactionsService implements OnApplicationShutdown, OnMod
         return transaction.save({ session });
     }
 
-    async findWalletData(walletId: string, session) {
-        const cacheData = await this.getCache('wallet', walletId);
+    async findWalletData(walletId: string, session: ClientSession): Promise<WalletDocument | null> {
+        const cacheKey = this.cacheService.createKey('wallet', walletId);
+        const cacheData = await this.cacheService.get<Partial<Wallet>>(cacheKey);
         if (cacheData) {
-            return cacheData;
+            return this.walletModel.hydrate(cacheData) as WalletDocument;
         }
+
         const response = await this.walletModel.findOne({ id: walletId }).session(session);
-        console.log('cached:  ', response)
-        await this.setCache('wallet', walletId, response);
+        if (response) {
+            await this.cacheService.set(cacheKey, response.toObject());
+        }
         return response;
     }
 
-    async findWalletDataByName(name: string) {
-        const cacheData = await this.getCache('wallet', name);
+    async findWalletDataByName(name: string): Promise<Wallet[]> {
+        const cacheKey = this.cacheService.createKey('wallet', name);
+        const cacheData = await this.cacheService.get<Wallet[]>(cacheKey);
         if (cacheData) {
             return cacheData;
         }
 
-        const response = await this.walletModel.find({ name });
-        await this.setCache('wallet', name, response);
+        const response = await this.walletModel.find({ name }).lean().exec();
+        await this.cacheService.set(cacheKey, response);
         return response;
     }
 
     generateTransactionId() {
         return Math.floor(1000000000 + Math.random() * 9000000000);
-    }
-
-    // Redis Caching Layer
-    private async getCache(module: string, payload: any): Promise<any> {
-        const cacheKey = this.createCacheKey(module, payload);
-        return await this.cacheManager.get(cacheKey);
-    }
-
-    private async setCache(module: string, payload: any, data: any): Promise<void> {
-        try {
-            const cacheKey = this.createCacheKey(module, payload);
-            await this.cacheManager.set(cacheKey, data);
-        } catch (error) {
-            console.log(`Error setting cache: ${error.message}`, error.stack);
-        }
-    }
-
-    private createCacheKey(module: string, payload: any): string {
-        return `${module}_${payload}`;
     }
 
     // Cleanup and Shutdown Logic
