@@ -172,7 +172,7 @@ The Wallet API performs the following functions:
 
 5. **Access API Documentation:**
 
-   Visit [http://localhost:3000/api-docs](http://localhost:3000/api-docs) to view the Swagger UI with full API details and sample payloads.
+   Visit [https://wallet-dry-snowflake-6122.fly.dev/api-docs](https://wallet-dry-snowflake-6122.fly.dev/api-docs) to view the Swagger UI with full API details and sample payloads.
 
 ## Environment Configuration
 

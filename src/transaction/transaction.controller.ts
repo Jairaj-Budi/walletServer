@@ -110,7 +110,7 @@ export class TransactionController {
       res.setHeader('Content-Disposition', `attachment; filename=transactions-${query.walletId}.csv`);
 
       // Stream the CSV header
-      const header = 'id,walletId,amount,balance,description,date,type\n';
+      const header = 'walletId,amount,balance,description,date,type\n';
       res.write(header);
 
       // Stream data in chunks

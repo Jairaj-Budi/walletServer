@@ -133,7 +133,7 @@ export class TransactionService implements OnApplicationShutdown, OnModuleDestro
       }
 
       for (const transaction of transactions) {
-        const line = `${transaction.id},${transaction.walletId},${transaction.amount},${transaction.balance},${transaction.description},${transaction.date},${transaction.type}\n`;
+        const line = `${transaction.walletId},${transaction.amount},${parseFloat(transaction.balance.toFixed(4))},${transaction.description},${transaction.date},${transaction.type}\n`;
         res.write(line);
       }
 
