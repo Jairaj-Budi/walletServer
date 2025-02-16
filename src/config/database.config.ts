@@ -1,7 +1,7 @@
 
 export default () => ({
 
-        MONGO_URI: process.env.DB || 'mongodb://localhost:27017/walletDB?replicaSet=rs0',
+        MONGODB_URI: process.env.DB || 'mongodb+srv://wallet:walletProject@cluster0.ulxx5.mongodb.net/wallet',
       
     });
     
