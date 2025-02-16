@@ -29,24 +29,36 @@ export class WalletService implements OnApplicationShutdown, OnModuleDestroy{
   async createWallet(createWalletDto: CreateWalletDto): Promise<Wallet> {
     const wallet = await this.transactionManager.executeInTransaction(async (session) => {
          // Check if a wallet (user) with the same name already exists
-         const existingWallet = await this.walletRepository.findByName(createWalletDto.name );
+         const existingWallet = await this.walletRepository.findByName(createWalletDto.name);
          if (existingWallet) {
            throw new ConflictException('User already exists');
          }
-      const walletData = {
-        ...createWalletDto,
-        id: uuidv4(),
-        transactionId: uuidv4(),
-        date: new Date()
-      };
-      
-      const newWallet = await this.walletRepository.create(walletData);
-      await this.cacheService.set(
-        this.cacheService.createKey('wallet', newWallet.id),
-        newWallet
-      );
-      
-      return newWallet;
+
+         const walletData = {
+           ...createWalletDto,
+           id: uuidv4(),
+           transactionId: uuidv4(),
+           date: new Date()
+         };
+
+         const newWallet = await this.walletRepository.createWithSession(walletData, session);
+
+         // Insert wallet creation transaction record
+         await this.databaseTransactionService.createTransaction(
+            newWallet.id,
+            newWallet.balance,
+            newWallet.balance,
+            "Wallet creation",
+            session
+         );
+
+         // Cache the new wallet
+         await this.cacheService.set(
+           this.cacheService.createKey('wallet', newWallet.id),
+           newWallet
+         );
+
+         return newWallet;
     });
 
     return wallet;

@@ -13,6 +13,10 @@ export class WalletRepository {
     const wallet = new this.walletModel(data);
     return wallet.save();
   }
+  async createWithSession(data: Partial<Wallet>, session): Promise<Wallet> {
+    const wallet = new this.walletModel(data);
+    return wallet.save({ session });
+  }
 
   async findById(id: string): Promise<Wallet | null> {
     return this.walletModel.findOne({ id }).lean();
