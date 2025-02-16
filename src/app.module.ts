@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, NestModule, MiddlewareConsumer } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { WalletModule } from './wallet/wallet.module';
 import { TransactionModule } from './transaction/transaction.module';
@@ -11,36 +11,67 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import 'dotenv/config';
 import { AppConfigModule } from './config/config.module';
 import { CacheModule } from '@nestjs/cache-manager';
-import * as redisStore from 'cache-manager-redis-store';
+import { TransactionManager } from './common/services/transaction-manager.service';
+import { RateLimiterMiddleware } from './common/middleware/rate-limiter.middleware';
+import { CompressionMiddleware } from './common/middleware/compression.middleware';
+import { HealthController } from './common/controllers/health.controller';
 
 @Module({
   imports: [
     AppConfigModule,
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: '.env',
+    }),
+    CacheModule.registerAsync({
+      isGlobal: true,
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => ({
+        ttl: 300, // 5 minutes default TTL
+      }),
+      inject: [ConfigService],
+    }),
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => {
+        const uri = configService.get<string>('MONGODB_URI');
+        if (!uri) {
+          throw new Error('MONGODB_URI is not defined in environment variables');
+        }
+        return {
+          uri,
+          useNewUrlParser: true,
+          useUnifiedTopology: true,
+        };
+      },
       inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        uri: configService.get<string>('MONGO_URI'), // Using config file
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-      }),
-    }),    
+    }),
     MongooseModule.forFeature([
       { name: 'Wallet', schema: WalletSchema },
       { name: 'Transaction', schema: TransactionSchema },
     ]),
-    CacheModule.register({
-      isGlobal:true,
-      store: redisStore,
-      host: 'localhost', // Redis host
-      port: 6379,        // Redis port
-      ttl: 60,           // Cache expiration time (60 seconds)
-    }),
     WalletModule,
     TransactionModule,
   ],
-  providers: [AppService,],
-  controllers: [  AppController],
+  providers: [
+    AppService,
+    TransactionManager,
+  ],
+  controllers: [
+    AppController,
+    HealthController
+  ],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  constructor(private configService: ConfigService) {
+    const mongoUri = this.configService.get<string>('MONGODB_URI');
+    console.log('MongoDB URI:', mongoUri); // This will help debug the connection string
+  }
+
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(RateLimiterMiddleware, CompressionMiddleware)
+      .forRoutes('*');
+  }
+}
 

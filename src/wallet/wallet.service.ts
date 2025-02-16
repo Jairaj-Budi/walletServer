@@ -4,6 +4,10 @@ import { Connection, Model } from 'mongoose';
 import { Wallet, WalletDocument } from './schemas/wallet.schema';
 import { CreateWalletDto } from './dtos/create-wallet.dto';
 import { DatabaseTransactionsService } from 'src/database-transactions/database-transactions.service';
+import { WalletRepository } from './repositories/wallet.repository';
+import { CacheService } from '../common/services/cache.service';
+import { TransactionManager } from '../common/services/transaction-manager.service';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class WalletService implements OnApplicationShutdown, OnModuleDestroy{
@@ -11,7 +15,10 @@ export class WalletService implements OnApplicationShutdown, OnModuleDestroy{
 
   constructor(
     @InjectConnection() private readonly connection: Connection,
-    private readonly databaseTransactionService : DatabaseTransactionsService
+    private readonly databaseTransactionService : DatabaseTransactionsService,
+    private readonly walletRepository: WalletRepository,
+    private readonly cacheService: CacheService,
+    private readonly transactionManager: TransactionManager
   ) {}
 
   /**
@@ -20,27 +27,25 @@ export class WalletService implements OnApplicationShutdown, OnModuleDestroy{
    * @returns The created wallet.
    */
   async createWallet(createWalletDto: CreateWalletDto): Promise<Wallet> {
-    const session = await this.connection.startSession();
-    session.startTransaction();
+    const wallet = await this.transactionManager.executeInTransaction(async (session) => {
+      const walletData = {
+        ...createWalletDto,
+        id: uuidv4(),
+        transactionId: uuidv4(),
+        date: new Date()
+      };
+      
+      const newWallet = await this.walletRepository.create(walletData);
+      await this.cacheService.set(
+        this.cacheService.createKey('wallet', newWallet.id),
+        newWallet
+      );
+      
+      return newWallet;
+    });
 
-    try {
-      const getWalletData = await this.databaseTransactionService.findWalletDataByName(createWalletDto.name)
-      if(getWalletData?.length) {
-        throw new ConflictException(`Wallet with name '${createWalletDto.name}' already exists.`);
-      }
-      const wallet = await this.databaseTransactionService.insertWallet(createWalletDto, session);
-      await session.commitTransaction();
-      this.logger.log(`Wallet created successfully: ID=${wallet.id}`);
-      return wallet;
-    } catch (error) {
-      await session.abortTransaction();
-      this.logger.error(`Wallet creation failed: ${error.message}`, error.stack);
-      throw new InternalServerErrorException(error);
-    } finally {
-      await session.endSession();
-    }
+    return wallet;
   }
-
 
   async loginUser(body) {
     const {name} = body;
@@ -49,11 +54,8 @@ export class WalletService implements OnApplicationShutdown, OnModuleDestroy{
       return getWalletData[0];
     }else{
       throw new InternalServerErrorException('Wallet Data not found, please sign up');
-
     }
-
   }
-
 
   /**
    * Retrieves a wallet by its ID.
@@ -61,32 +63,32 @@ export class WalletService implements OnApplicationShutdown, OnModuleDestroy{
    * @returns The wallet details.
    */
   async getWallet(id: string): Promise<Wallet> {
-
-
-    try {
-      const wallet = await this.databaseTransactionService.findWalletById(id);
-
-      if (!wallet) {
-        this.logger.warn(`Wallet not found: ID=${id}`);
-        throw new NotFoundException(`Wallet with ID ${id} not found`);
-      }
-
-      this.logger.log(`Wallet retrieved successfully: ID=${id}`);
-      return wallet;
-    } catch (error) {
-      this.logger.error(`Failed to fetch wallet: ID=${id}`, error.stack);
-      throw new InternalServerErrorException('Failed to retrieve wallet');
+    const cacheKey = this.cacheService.createKey('wallet', id);
+    const cachedWallet = await this.cacheService.get<Wallet>(cacheKey);
+    
+    if (cachedWallet) {
+      return cachedWallet as Wallet;
     }
+
+    const wallet = await this.walletRepository.findById(id);
+    if (!wallet) {
+      this.logger.warn(`Wallet not found: ID=${id}`);
+      throw new NotFoundException(`Wallet with ID ${id} not found`);
+    }
+
+    await this.cacheService.set(cacheKey, wallet);
+    this.logger.log(`Wallet retrieved successfully: ID=${id}`);
+    return wallet;
   }
-    /**
+
+  /**
    * Handles application shutdown to clean up database connections.
    */
-    async onApplicationShutdown(signal?: string) {
-      this.logger.warn(`⚠ Application is shutting down due to: ${signal}`);
-      await this.cleanup();
-    }
+  async onApplicationShutdown(signal?: string) {
+    this.logger.warn(`⚠ Application is shutting down due to: ${signal}`);
+    await this.cleanup();
+  }
 
-    
   async onModuleDestroy() {
     this.logger.warn(`⚠ WalletService module is being destroyed`);
     await this.cleanup();
@@ -105,5 +107,4 @@ export class WalletService implements OnApplicationShutdown, OnModuleDestroy{
       this.logger.error(`Error closing database connection: ${error.message}`, error.stack);
     }
   }
-
 }

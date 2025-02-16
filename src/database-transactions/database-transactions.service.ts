@@ -67,8 +67,8 @@ export class DatabaseTransactionsService implements OnApplicationShutdown, OnMod
         if (cacheData) {
             return cacheData;
         }
-
         const response = await this.walletModel.findOne({ id: walletId }).session(session);
+        console.log('cached:  ', response)
         await this.setCache('wallet', walletId, response);
         return response;
     }
@@ -95,8 +95,12 @@ export class DatabaseTransactionsService implements OnApplicationShutdown, OnMod
     }
 
     private async setCache(module: string, payload: any, data: any): Promise<void> {
-        const cacheKey = this.createCacheKey(module, payload);
-        await this.cacheManager.set(cacheKey, data, 60);
+        try {
+            const cacheKey = this.createCacheKey(module, payload);
+            await this.cacheManager.set(cacheKey, data);
+        } catch (error) {
+            console.log(`Error setting cache: ${error.message}`, error.stack);
+        }
     }
 
     private createCacheKey(module: string, payload: any): string {

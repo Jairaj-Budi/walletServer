@@ -5,10 +5,13 @@ import { WalletService } from './wallet.service';
 import { Wallet, WalletSchema } from './schemas/wallet.schema';
 import { DatabaseTransactionsService } from 'src/database-transactions/database-transactions.service';
 import { Transaction, TransactionSchema } from 'src/transaction/transaction.schema';
+import { WalletRepository } from './repositories/wallet.repository';
+import { CacheService } from 'src/common/services/cache.service';
+import { TransactionManager } from '../common/services/transaction-manager.service';
 
 @Module({
   imports: [MongooseModule.forFeature([{ name: Wallet.name, schema: WalletSchema },{name : Transaction.name, schema : TransactionSchema}])],
   controllers: [WalletController],
-  providers: [WalletService, DatabaseTransactionsService],
+  providers: [WalletService, DatabaseTransactionsService, WalletRepository, CacheService, TransactionManager],
 })
 export class WalletModule {}
