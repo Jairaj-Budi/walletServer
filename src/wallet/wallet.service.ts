@@ -90,12 +90,12 @@ export class WalletService implements OnApplicationShutdown, OnModuleDestroy{
    * Handles application shutdown to clean up database connections.
    */
   async onApplicationShutdown(signal?: string) {
-    this.logger.warn(`⚠ Application is shutting down due to: ${signal}`);
+    this.logger.warn(`Application is shutting down due to: ${signal}`);
     await this.cleanup();
   }
 
   async onModuleDestroy() {
-    this.logger.warn(`⚠ WalletService module is being destroyed`);
+    this.logger.warn(`WalletService module is being destroyed`);
     await this.cleanup();
   }
 
