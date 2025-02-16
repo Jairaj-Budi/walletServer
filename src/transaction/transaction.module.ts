@@ -7,8 +7,8 @@ import { TransactionPureService } from './services/transaction-pure.service';
 import { TransactionSecurityService } from './services/transaction-security.service';
 import { TransactionCacheService } from './services/transaction-cache.service';
 import { DatabaseTransactionsService } from '../database-transactions/database-transactions.service';
-import { CacheService } from 'src/common/services/cache.service';
-import { Wallet, WalletSchema } from 'src/wallet/schemas/wallet.schema';
+import { CacheService } from '../common/services/cache.service';
+import { Wallet, WalletSchema } from '../wallet/schemas/wallet.schema';
 
 @Module({
   imports: [

@@ -3,10 +3,10 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { WalletController } from './wallet.controller';
 import { WalletService } from './wallet.service';
 import { Wallet, WalletSchema } from './schemas/wallet.schema';
-import { DatabaseTransactionsService } from 'src/database-transactions/database-transactions.service';
-import { Transaction, TransactionSchema } from 'src/transaction/transaction.schema';
+import { DatabaseTransactionsService } from '../database-transactions/database-transactions.service';
+import { Transaction, TransactionSchema } from '../transaction/transaction.schema';
 import { WalletRepository } from './repositories/wallet.repository';
-import { CacheService } from 'src/common/services/cache.service';
+import { CacheService } from '../common/services/cache.service';
 import { TransactionManager } from '../common/services/transaction-manager.service';
 
 @Module({

@@ -3,7 +3,7 @@ import { InjectConnection, InjectModel } from '@nestjs/mongoose';
 import { Connection, Model } from 'mongoose';
 import { Wallet, WalletDocument } from './schemas/wallet.schema';
 import { CreateWalletDto } from './dtos/create-wallet.dto';
-import { DatabaseTransactionsService } from 'src/database-transactions/database-transactions.service';
+import { DatabaseTransactionsService } from '../database-transactions/database-transactions.service';
 import { WalletRepository } from './repositories/wallet.repository';
 import { CacheService } from '../common/services/cache.service';
 import { TransactionManager } from '../common/services/transaction-manager.service';

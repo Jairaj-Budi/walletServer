@@ -1,12 +1,12 @@
 import { Inject, Injectable, OnApplicationShutdown, OnModuleDestroy } from '@nestjs/common';
 import { InjectConnection, InjectModel } from '@nestjs/mongoose';
-import { CreateWalletDto } from 'src/wallet/dtos/create-wallet.dto';
-import { Wallet, WalletDocument } from 'src/wallet/schemas/wallet.schema';
+import { CreateWalletDto } from '../wallet/dtos/create-wallet.dto';
+import { Wallet, WalletDocument } from '../wallet/schemas/wallet.schema';
 import { Connection, Model } from 'mongoose';
-import { Transaction, TransactionDocument } from 'src/transaction/transaction.schema';
+import { Transaction, TransactionDocument } from '../transaction/transaction.schema';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
-import { CacheService } from 'src/common/services/cache.service';
+import { CacheService } from '../common/services/cache.service';
 import { ClientSession } from 'mongoose';
 
 @Injectable()

@@ -9,7 +9,7 @@ import { InjectConnection, InjectModel } from '@nestjs/mongoose';
 import { Connection, Model, ClientSession } from 'mongoose';
 import { Transaction, TransactionDocument } from './transaction.schema';
 import { Wallet, WalletDocument } from '../wallet/schemas/wallet.schema';
-import { DatabaseTransactionsService } from 'src/database-transactions/database-transactions.service';
+import { DatabaseTransactionsService } from '../database-transactions/database-transactions.service';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { CacheService } from '../common/services/cache.service';
