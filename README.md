@@ -97,3 +97,297 @@ Nest is an MIT-licensed open source project. It can grow thanks to the sponsors 
 ## License
 
 Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+
+# Wallet API
+
+The Wallet API is a comprehensive solution built with [NestJS](https://nestjs.com/) that manages wallet transactions, caching, rate limiting, and security. It uses MongoDB (with Mongoose) for data storage, Redis for caching, and supports clustering in production for high availability.
+
+## Table of Contents
+
+- [Overview](#overview)
+- [Getting Started](#getting-started)
+- [Environment Configuration](#environment-configuration)
+- [API Endpoints & Payloads](#api-endpoints--payloads)
+  - [Transaction Endpoints](#transaction-endpoints)
+  - [Wallet Endpoints](#wallet-endpoints)
+  - [Health Check Endpoint](#health-check-endpoint)
+- [Implementation Details](#implementation-details)
+- [Testing](#testing)
+- [License](#license)
+
+## Overview
+
+The Wallet API performs the following functions:
+- **Transactions:** Create, update, and export wallet transactions.
+- **Wallet Management:** Create, retrieve, and update wallet information.
+- **Caching:** Uses Redis via the `cache-manager` for performance optimization. A dedicated `CacheService` handles caching logic.
+- **Security & Rate Limiting:** Uses Helmet for HTTP headers security, express-rate-limit middleware for API rate limiting, and global guards/exception filters.
+- **Clustering:** Supports clustering in production to utilize all available CPU cores.
+- **Swagger Documentation:** Auto-generated API documentation is available via Swagger.
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js (>= 14.x)
+- npm
+- MongoDB
+- Redis (for caching)
+
+### Installation
+
+1. **Clone repository:**
+   ```bash
+   git clone <repository-url>
+   cd wallet
+   ```
+
+2. **Install dependencies:**
+   ```bash
+   npm install
+   ```
+   If dependency conflicts occur, run:
+   ```bash
+   npm install --legacy-peer-deps
+   ```
+
+3. **Build the project:**
+   ```bash
+   npm run build
+   ```
+
+4. **Start the server:**
+   - Development:
+     ```bash
+     npm run start:dev
+     ```
+   - Production:
+     ```bash
+     npm run start:prod
+     ```
+   - With clustering in production:
+     ```bash
+     npm run start:cluster
+     ```
+
+5. **Access API Documentation:**
+
+   Visit [http://localhost:3000/api-docs](http://localhost:3000/api-docs) to view the Swagger UI with full API details and sample payloads.
+
+## Environment Configuration
+
+Create a `.env` file in the project root with entries like:
+
+```dotenv
+PORT=3000
+NODE_ENV=development
+MONGODB_URI=mongodb://localhost:27017/wallet
+API_KEY=your-api-key
+```
+
+## API Endpoints & Payloads
+
+### Transaction Endpoints
+
+#### POST `/transact/:walletId`
+
+**Description:** Create a new transaction on a wallet.
+
+**Headers:**
+- `x-api-key` – API key for authentication.
+
+**Path Parameters:**
+- `walletId` (string): Unique wallet identifier.
+
+**Request Payload (TransactDto):**
+```json
+{
+  "amount": 100,
+  "description": "Payment for order #1234"
+}
+```
+
+**Response:**
+```json
+{
+  "id": "generated-transaction-id",
+  "walletId": "walletId provided",
+  "amount": 100,
+  "balance": 500,
+  "description": "Payment for order #1234",
+  "date": "2025-02-16T18:00:00.000Z",
+  "type": "CREDIT"
+}
+```
+
+#### GET `/transactions?walletId=<walletId>&skip=0&limit=100&sortColumn=date&sortOrder=true`
+
+**Description:** Retrieves transactions for the given wallet with pagination.
+
+**Query Parameters:**
+- `walletId` (string, required)
+- `skip` (number, optional, default: 0)
+- `limit` (number, optional, default: 100)
+- `sortColumn` (string, e.g., `"date"`)
+- `sortOrder` (string, `"true"` for ascending, `"false"` for descending)
+
+**Response:**
+```json
+{
+  "data": [
+    {
+      "id": "tx-1",
+      "walletId": "wallet-1",
+      "amount": 50,
+      "balance": 150,
+      "description": "Transaction one",
+      "date": "2025-02-16T18:00:00.000Z",
+      "type": "CREDIT"
+    },
+    {
+      "id": "tx-2",
+      "walletId": "wallet-1",
+      "amount": -25,
+      "balance": 125,
+      "description": "Transaction two",
+      "date": "2025-02-16T18:05:00.000Z",
+      "type": "DEBIT"
+    }
+  ],
+  "count": 2
+}
+```
+
+#### GET `/export-transactions`
+
+**Description:** Exports transactions for a wallet as a CSV file (implementation may vary).
+
+**Query Parameters:**
+- `walletId`: UUID of the wallet.
+- `skip` (optional)
+- `limit` (optional)
+
+The endpoint streams a CSV file with headers and transaction rows.
+
+### Wallet Endpoints
+
+#### POST `/wallets`
+
+**Description:** Create a new wallet.
+
+**Payload (CreateWalletDto):**
+```json
+{
+  "name": "John Doe",
+  "balance": 0
+}
+```
+
+**Response:**
+```json
+{
+  "id": 1234567890,
+  "name": "John Doe",
+  "balance": 0,
+  "date": "2025-02-16T18:00:00.000Z",
+  "transactionId": 1234567890
+}
+```
+
+#### GET `/wallets/:id`
+
+**Description:** Retrieve wallet information by ID.
+
+**Response:**
+```json
+{
+  "id": "wallet-id",
+  "name": "John Doe",
+  "balance": 1000,
+  "date": "2025-02-16T18:00:00.000Z"
+}
+```
+
+#### GET `/wallets?name=John`
+
+**Description:** Retrieve wallets by name.
+
+**Response:**
+```json
+[
+  {
+    "id": "wallet-id-1",
+    "name": "John Doe",
+    "balance": 1000,
+    "date": "2025-02-16T18:00:00.000Z"
+  },
+  {
+    "id": "wallet-id-2",
+    "name": "John Doe",
+    "balance": 500,
+    "date": "2025-02-16T19:00:00.000Z"
+  }
+]
+```
+
+### Health Check Endpoint
+
+#### GET `/health`
+
+**Description:** Returns system health and performance metrics.
+
+**Response:**
+```json
+{
+  "status": "ok",
+  "timestamp": "2025-02-16T18:00:00.000Z",
+  "pid": 12345,
+  "memory": { ... },
+  "cpu": [ ... ],
+  "uptime": 3600
+}
+```
+
+## Implementation Details
+
+- **Clustering:**  
+  The `setupCluster` function in `src/cluster.ts` enables clustering in production. It forks workers based on available CPU cores.
+
+- **Caching:**  
+  The application uses Redis via `cache-manager` along with a custom `CacheService` (`src/common/services/cache.service.ts`) that provides methods for getting, setting, and clearing cache entries.  
+  The caching logic is integrated into both wallet and transaction services.
+
+- **Database & Transactions:**  
+  MongoDB is used along with Mongoose. Database transactions are handled using Mongoose sessions, ensuring consistency during operations such as wallet balance updates and transaction creation.
+
+- **Security & Rate Limiting:**  
+  - **Security Middleware:** Uses Helmet for security headers.
+  - **Rate Limiting:** The `RateLimiterMiddleware` (in `src/common/middleware/rate-limiter.middleware.ts`) limits the number of requests per IP.
+  - **API Authentication:** An `AuthGuard` ensures requests include a valid API key.
+  - **Sanitization:** The `SanitizePipe` strips any HTML from inputs to prevent XSS attacks.
+
+- **Global Exception Handling:**  
+  The `GlobalExceptionFilter` catches errors application-wide, logs them, and returns a consistent JSON response.
+
+- **Swagger Integration:**  
+  Swagger is integrated and configured in `src/main.ts` to auto-generate comprehensive API documentation available under `/api-docs`.
+
+## Testing
+
+- **Unit Tests:**  
+  Written using Jest.  
+  To run tests:
+  ```bash
+  npm run test
+  ```
+
+- **End-to-End Tests:**  
+  Available under the test directory.  
+  To run E2E tests:
+  ```bash
+  npm run test:e2e
+  ```
+
+## License
+
+This project is licensed under the UNLICENSED (update as needed).
