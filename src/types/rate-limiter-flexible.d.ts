@@ -12,4 +12,4 @@ declare module 'rate-limiter-flexible' {
   }
 
   export = RateLimiterMemory;
-} 
+}

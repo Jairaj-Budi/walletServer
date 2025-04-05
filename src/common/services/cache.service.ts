@@ -24,7 +24,7 @@ export class CacheService {
     if (typeof store.keys === 'function') {
       const keys = await store.keys(pattern);
       if (keys && Array.isArray(keys)) {
-        await Promise.all(keys.map(key => this.cacheManager.del(key)));
+        await Promise.all(keys.map((key) => this.cacheManager.del(key)));
       } else if (keys) {
         await this.cacheManager.del(keys);
       }
@@ -34,4 +34,4 @@ export class CacheService {
   createKey(...parts: string[]): string {
     return parts.join(':');
   }
-} 
+}

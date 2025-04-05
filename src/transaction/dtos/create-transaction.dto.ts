@@ -1,4 +1,10 @@
-import { IsString, IsNumber, Min, MaxLength, IsAlphanumeric } from 'class-validator';
+import {
+  IsString,
+  IsNumber,
+  Min,
+  MaxLength,
+  IsAlphanumeric,
+} from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class TransactDto {
@@ -10,7 +16,10 @@ export class TransactDto {
   @IsNumber()
   amount: number;
 
-  @ApiProperty({ description: 'Transaction description', example: 'Payment for order #1234' })
+  @ApiProperty({
+    description: 'Transaction description',
+    example: 'Payment for order #1234',
+  })
   @IsString()
   @MaxLength(255)
   description: string;

@@ -30,4 +30,4 @@ export class TransactionCacheService {
     const pattern = `transaction_*:${walletId}`;
     await this.cacheManager.del(pattern);
   }
-} 
+}

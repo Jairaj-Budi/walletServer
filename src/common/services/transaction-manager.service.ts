@@ -7,7 +7,7 @@ export class TransactionManager {
   constructor(@InjectConnection() private readonly connection: Connection) {}
 
   async executeInTransaction<T>(
-    operation: (session: any) => Promise<T>
+    operation: (session: any) => Promise<T>,
   ): Promise<T> {
     const session = await this.connection.startSession();
     session.startTransaction();
@@ -23,4 +23,4 @@ export class TransactionManager {
       session.endSession();
     }
   }
-} 
+}

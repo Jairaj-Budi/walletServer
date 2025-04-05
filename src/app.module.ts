@@ -36,7 +36,9 @@ import { HealthController } from './common/controllers/health.controller';
       useFactory: async (configService: ConfigService) => {
         const uri = configService.get<string>('MONGODB_URI');
         if (!uri) {
-          throw new Error('MONGODB_URI is not defined in environment variables');
+          throw new Error(
+            'MONGODB_URI is not defined in environment variables',
+          );
         }
         return {
           uri,
@@ -53,14 +55,8 @@ import { HealthController } from './common/controllers/health.controller';
     WalletModule,
     TransactionModule,
   ],
-  providers: [
-    AppService,
-    TransactionManager,
-  ],
-  controllers: [
-    AppController,
-    HealthController
-  ],
+  providers: [AppService, TransactionManager],
+  controllers: [AppController, HealthController],
 })
 export class AppModule implements NestModule {
   constructor(private configService: ConfigService) {
@@ -69,9 +65,6 @@ export class AppModule implements NestModule {
   }
 
   configure(consumer: MiddlewareConsumer) {
-    consumer
-      .apply(RateLimiterMiddleware, CompressionMiddleware)
-      .forRoutes('*');
+    consumer.apply(RateLimiterMiddleware, CompressionMiddleware).forRoutes('*');
   }
 }
-

@@ -2,7 +2,10 @@ import { IsString, IsOptional, IsNumber, Min } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 
 export class GetTransactionsDto {
-  @ApiPropertyOptional({ description: 'The unique identifier for the wallet', example: '12345abcde' })
+  @ApiPropertyOptional({
+    description: 'The unique identifier for the wallet',
+    example: '12345abcde',
+  })
   @IsString()
   @IsOptional()
   walletId?: string;
@@ -12,7 +15,10 @@ export class GetTransactionsDto {
   @IsOptional()
   skip?: number = 0;
 
-  @ApiPropertyOptional({ description: 'Number of records to fetch', example: 10 })
+  @ApiPropertyOptional({
+    description: 'Number of records to fetch',
+    example: 10,
+  })
   @IsString()
   @IsOptional()
   limit?: number = 10;

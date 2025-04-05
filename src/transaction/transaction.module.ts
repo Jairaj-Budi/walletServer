@@ -15,7 +15,7 @@ import { Wallet, WalletSchema } from '../wallet/schemas/wallet.schema';
     MongooseModule.forFeature([
       { name: Transaction.name, schema: TransactionSchema },
       { name: Wallet.name, schema: WalletSchema },
-    ])
+    ]),
   ],
   controllers: [TransactionController],
   providers: [
@@ -23,8 +23,9 @@ import { Wallet, WalletSchema } from '../wallet/schemas/wallet.schema';
     TransactionPureService,
     DatabaseTransactionsService,
     TransactionSecurityService,
-    TransactionCacheService,CacheService
+    TransactionCacheService,
+    CacheService,
   ],
-  exports: [TransactionService]
+  exports: [TransactionService],
 })
 export class TransactionModule {}

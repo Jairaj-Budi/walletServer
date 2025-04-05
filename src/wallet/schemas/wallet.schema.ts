@@ -11,8 +11,8 @@ export type WalletDocument = Wallet & Document;
     transform: (doc, ret) => {
       delete ret._id; // Removing MongoDB `_id`
       delete ret.__v; // Removing version key
-      delete ret.createdAt // Removing createdAt
-      delete ret.updatedAt // Removing updatedAt
+      delete ret.createdAt; // Removing createdAt
+      delete ret.updatedAt; // Removing updatedAt
     },
   },
 })
@@ -34,5 +34,5 @@ export class Wallet {
 }
 
 export const WalletSchema = SchemaFactory.createForClass(Wallet);
-WalletSchema.index({id:1})
-WalletSchema.index({name:1}, {unique : true})
+WalletSchema.index({ id: 1 });
+WalletSchema.index({ name: 1 }, { unique: true });

@@ -11,7 +11,7 @@ export class SanitizePipe implements PipeTransform {
       });
     }
     if (typeof value === 'object' && value !== null) {
-      Object.keys(value).forEach(key => {
+      Object.keys(value).forEach((key) => {
         if (typeof value[key] === 'string') {
           value[key] = sanitizeHtml(value[key], {
             allowedTags: [],
@@ -22,4 +22,4 @@ export class SanitizePipe implements PipeTransform {
     }
     return value;
   }
-} 
+}

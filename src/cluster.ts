@@ -11,7 +11,10 @@ export function setupCluster(bootstrap: () => Promise<void>) {
   const clusterInstance = cluster as unknown as {
     isPrimary: boolean;
     fork: () => Worker;
-    on: (event: string, callback: (worker: Worker, code: number, signal: string) => void) => void;
+    on: (
+      event: string,
+      callback: (worker: Worker, code: number, signal: string) => void,
+    ) => void;
     workers: { [key: string]: Worker | undefined };
   };
 
@@ -19,7 +22,7 @@ export function setupCluster(bootstrap: () => Promise<void>) {
     logger.log(`Master server started on ${process.pid}`);
 
     // Fork workers based on CPU cores
-    for (let i = 0; i < numCPUs/2; i++) {
+    for (let i = 0; i < numCPUs / 2; i++) {
       clusterInstance.fork();
     }
 
@@ -31,8 +34,8 @@ export function setupCluster(bootstrap: () => Promise<void>) {
     // Handle graceful shutdown
     process.on('SIGTERM', () => {
       logger.log('SIGTERM signal received: closing HTTP server');
-      
-      Object.values(clusterInstance.workers).forEach(worker => {
+
+      Object.values(clusterInstance.workers).forEach((worker) => {
         worker?.send('shutdown');
       });
 
@@ -41,7 +44,6 @@ export function setupCluster(bootstrap: () => Promise<void>) {
         process.exit(0);
       }, 30000);
     });
-
   } else {
     // Worker process
     bootstrap().then(() => {
@@ -58,4 +60,4 @@ export function setupCluster(bootstrap: () => Promise<void>) {
       }
     });
   }
-} 
+}

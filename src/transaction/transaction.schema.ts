@@ -4,18 +4,18 @@ import { Document } from 'mongoose';
 export type TransactionDocument = Transaction & Document;
 
 @Schema({
-  toJSON : {
-    transform : (doc,ret)=>{
+  toJSON: {
+    transform: (doc, ret) => {
       delete ret.walletId,
-      delete ret.amount,
-      delete ret.description,
-      delete ret.type,
-      delete ret._id,
-      delete ret.date,
-      delete ret.__v,
-      delete ret.id
-    }
-  }
+        delete ret.amount,
+        delete ret.description,
+        delete ret.type,
+        delete ret._id,
+        delete ret.date,
+        delete ret.__v,
+        delete ret.id;
+    },
+  },
 })
 export class Transaction {
   @Prop({ required: true })
@@ -36,13 +36,12 @@ export class Transaction {
   @Prop({ required: true, enum: ['CREDIT', 'DEBIT'] })
   type: string;
 
-  @Prop({required : true})
-  transactionId : number;
+  @Prop({ required: true })
+  transactionId: number;
 
-  @Prop({required : true})
-  id : number;
-
+  @Prop({ required: true })
+  id: number;
 }
 
 export const TransactionSchema = SchemaFactory.createForClass(Transaction);
-TransactionSchema.index({walletId:1})
+TransactionSchema.index({ walletId: 1 });

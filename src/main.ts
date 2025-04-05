@@ -10,31 +10,31 @@ import { setupCluster } from './cluster';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  
+
   // Global pipes
   app.useGlobalPipes(
     new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }),
     new SanitizePipe(),
   );
-  
+
   // Global exception filter
   app.useGlobalFilters(new GlobalExceptionFilter());
-  
+
   const configService = app.get(ConfigService);
-  
+
   // Verify MongoDB URI is available
   const mongoUri = configService.get<string>('MONGODB_URI');
   console.log('Starting application with MongoDB URI:', mongoUri);
 
   const port = configService.get<number>('port') || 3000;
-  
+
   // Security middleware
-  app.enableCors()
+  app.enableCors();
   app.use(helmet());
-  
+
   // Enable shutdown hooks
   app.enableShutdownHooks();
-  
+
   // Swagger Configuration
   const config = new DocumentBuilder()
     .setTitle('Wallet API')

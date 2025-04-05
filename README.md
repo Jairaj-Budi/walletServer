@@ -115,6 +115,7 @@ The Wallet API is a comprehensive solution built with [NestJS](https://nestjs.co
 ## Overview
 
 The Wallet API performs the following functions:
+
 - **Transactions:** Create, update, and export wallet transactions.
 - **Wallet Management:** Create, retrieve, and update wallet information.
 - **Caching:** Uses Redis via the `cache-manager` for performance optimization. A dedicated `CacheService` handles caching logic.
@@ -134,22 +135,27 @@ The Wallet API performs the following functions:
 ### Setup Instructions
 
 1. **Clone the Repository:**
+
    ```bash
    git clone <repository-url>
    cd wallet
    ```
 
 2. **Install Dependencies:**
+
    ```bash
    npm install
    ```
+
    If dependency issues occur, try:
+
    ```bash
    npm install --legacy-peer-deps
    ```
 
 3. **Configure Environment Variables:**  
    Create a `.env` file in the project root:
+
    ```dotenv
    PORT=3000
    NODE_ENV=development
@@ -158,6 +164,7 @@ The Wallet API performs the following functions:
    ```
 
 4. **Compile and Run the Project:**
+
    - Development mode:
      ```bash
      npm run start:dev
@@ -174,7 +181,6 @@ The Wallet API performs the following functions:
 5. **Access API Documentation:**  
    Visit [https://wallet-dry-snowflake-6122.fly.dev/api-docs](https://wallet-dry-snowflake-6122.fly.dev/api-docs) to view the Swagger UI with full API details and sample payloads.
 
-
 ## API Endpoints & Sample Queries
 
 ### Transaction Endpoints
@@ -182,6 +188,7 @@ The Wallet API performs the following functions:
 1. **POST `/transact/:walletId`**  
    **Description:** Create a new transaction for a wallet.  
    **Sample Query:**
+
    ```http
    POST https://wallet-dry-snowflake-6122.fly.dev/transact/12345abcde
    Content-Type: application/json
@@ -192,49 +199,54 @@ The Wallet API performs the following functions:
       "description": "Payment for order #1234"
    }
    ```
+
    **Response Example:**
+
    ```json
    {
-      "id": "generated-transaction-id",
-      "walletId": "12345abcde",
-      "amount": 100,
-      "balance": 500,
-      "description": "Payment for order #1234",
-      "date": "2025-02-16T18:00:00.000Z",
-      "type": "CREDIT"
+     "id": "generated-transaction-id",
+     "walletId": "12345abcde",
+     "amount": 100,
+     "balance": 500,
+     "description": "Payment for order #1234",
+     "date": "2025-02-16T18:00:00.000Z",
+     "type": "CREDIT"
    }
    ```
 
 2. **GET `/transactions?walletId=<walletId>&skip=0&limit=100&sortColumn=date&sortOrder=asc`**  
    **Description:** Retrieve transactions for the specified wallet with pagination.  
    **Sample Query:**
+
    ```http
    GET https://wallet-dry-snowflake-6122.fly.dev/transactions?walletId=12345abcde&skip=0&limit=50&sortColumn=date&sortOrder=asc
    ```
+
    **Response Example:**
+
    ```json
    {
-      "data": [
-         {
-            "id": "tx-1",
-            "walletId": "12345abcde",
-            "amount": 100,
-            "balance": 500,
-            "description": "Initial Deposit",
-            "date": "2025-02-16T18:00:00.000Z",
-            "type": "CREDIT"
-         },
-         {
-            "id": "tx-2",
-            "walletId": "12345abcde",
-            "amount": -50,
-            "balance": 450,
-            "description": "Purchase",
-            "date": "2025-02-16T18:05:00.000Z",
-            "type": "DEBIT"
-         }
-      ],
-      "count": 2
+     "data": [
+       {
+         "id": "tx-1",
+         "walletId": "12345abcde",
+         "amount": 100,
+         "balance": 500,
+         "description": "Initial Deposit",
+         "date": "2025-02-16T18:00:00.000Z",
+         "type": "CREDIT"
+       },
+       {
+         "id": "tx-2",
+         "walletId": "12345abcde",
+         "amount": -50,
+         "balance": 450,
+         "description": "Purchase",
+         "date": "2025-02-16T18:05:00.000Z",
+         "type": "DEBIT"
+       }
+     ],
+     "count": 2
    }
    ```
 
@@ -244,13 +256,14 @@ The Wallet API performs the following functions:
    ```http
    GET https://wallet-dry-snowflake-6122.fly.dev/export-transactions?walletId=12345abcde
    ```
-   *The endpoint streams a CSV file with transaction records.*
+   _The endpoint streams a CSV file with transaction records._
 
 ### Wallet Endpoints
 
 1. **POST `/wallets`**  
    **Description:** Create a new wallet.  
    **Sample Query:**
+
    ```http
    POST https://wallet-dry-snowflake-6122.fly.dev/wallets
    Content-Type: application/json
@@ -260,30 +273,35 @@ The Wallet API performs the following functions:
       "balance": 0
    }
    ```
+
    **Response Example:**
+
    ```json
    {
-      "id": "generated-wallet-id",
-      "name": "John Doe",
-      "balance": 0,
-      "date": "2025-02-16T18:00:00.000Z",
-      "transactionId": "generated-transaction-id"
+     "id": "generated-wallet-id",
+     "name": "John Doe",
+     "balance": 0,
+     "date": "2025-02-16T18:00:00.000Z",
+     "transactionId": "generated-transaction-id"
    }
    ```
 
 2. **GET `/wallets/:id`**  
    **Description:** Retrieve wallet information by ID.  
    **Sample Query:**
+
    ```http
    GET https://wallet-dry-snowflake-6122.fly.dev/wallets/12345abcde
    ```
+
    **Response Example:**
+
    ```json
    {
-      "id": "12345abcde",
-      "name": "John Doe",
-      "balance": 1000,
-      "date": "2025-02-16T18:00:00.000Z"
+     "id": "12345abcde",
+     "name": "John Doe",
+     "balance": 1000,
+     "date": "2025-02-16T18:00:00.000Z"
    }
    ```
 
@@ -296,18 +314,18 @@ The Wallet API performs the following functions:
    **Response Example:**
    ```json
    [
-      {
-         "id": "wallet-id-1",
-         "name": "John Doe",
-         "balance": 1000,
-         "date": "2025-02-16T18:00:00.000Z"
-      },
-      {
-         "id": "wallet-id-2",
-         "name": "John Doe",
-         "balance": 500,
-         "date": "2025-02-16T19:00:00.000Z"
-      }
+     {
+       "id": "wallet-id-1",
+       "name": "John Doe",
+       "balance": 1000,
+       "date": "2025-02-16T18:00:00.000Z"
+     },
+     {
+       "id": "wallet-id-2",
+       "name": "John Doe",
+       "balance": 500,
+       "date": "2025-02-16T19:00:00.000Z"
+     }
    ]
    ```
 
@@ -322,12 +340,12 @@ The Wallet API performs the following functions:
    **Response Example:**
    ```json
    {
-      "status": "ok",
-      "timestamp": "2025-02-16T18:00:00.000Z",
-      "pid": 12345,
-      "memory": { "rss": 12345678, "heapTotal": 3456789, "heapUsed": 2345678 },
-      "cpu": [0.2, 0.1, 0.05],
-      "uptime": 3600
+     "status": "ok",
+     "timestamp": "2025-02-16T18:00:00.000Z",
+     "pid": 12345,
+     "memory": { "rss": 12345678, "heapTotal": 3456789, "heapUsed": 2345678 },
+     "cpu": [0.2, 0.1, 0.05],
+     "uptime": 3600
    }
    ```
 
@@ -336,13 +354,14 @@ The Wallet API performs the following functions:
 - **Database Type:**  
   The application utilizes **MongoDB** as its primary database, interfaced through **Mongoose** for schema management and object data modeling.
 
-- **Schema Design:**  
+- **Schema Design:**
+
   - **Wallet Schema:**  
     Stores wallet details such as `id`, `name`, `balance`, `transactionId`, and `date`. Unique identifiers are generated for each wallet and associated transaction.
   - **Transaction Schema:**  
     Manages transactions linked to wallets. Key fields include `walletId`, `amount`, `balance`, `description`, `transactionId`, `date`, and `type`. Each transaction is either a **CREDIT** or **DEBIT** based on the amount.
 
-- **Query Design:**  
+- **Query Design:**
   - **Lean Queries:**  
     Many read queries use the `.lean()` method to return plain JavaScript objects. This approach enhances performance by bypassing the full Mongoose document overhead.
   - **Pagination:**  

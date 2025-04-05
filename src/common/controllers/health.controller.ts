@@ -11,7 +11,7 @@ export class HealthController {
       pid: process.pid,
       memory: process.memoryUsage(),
       cpu: os.loadavg(),
-      uptime: process.uptime()
+      uptime: process.uptime(),
     };
   }
-} 
+}

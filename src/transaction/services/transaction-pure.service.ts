@@ -8,7 +8,8 @@ export class TransactionPureService {
    * Pure function to format transaction data for CSV
    */
   static formatTransactionForCSV(transaction: Transaction): string {
-    const escapedDescription = transaction.description?.replace(/"/g, '""') || '';
+    const escapedDescription =
+      transaction.description?.replace(/"/g, '""') || '';
     return [
       transaction.id,
       transaction.walletId,
@@ -16,7 +17,7 @@ export class TransactionPureService {
       transaction.balance,
       `"${escapedDescription}"`,
       transaction.date.toISOString(),
-      transaction.type
+      transaction.type,
     ].join(',');
   }
 
@@ -42,7 +43,7 @@ export class TransactionPureService {
   static calculatePagination(dto: ExportTransactionsDto) {
     return {
       skip: dto.skip || 0,
-      limit: dto.limit || 100
+      limit: dto.limit || 100,
     };
   }
 
@@ -52,4 +53,4 @@ export class TransactionPureService {
   static sanitizeWalletId(walletId: string): string {
     return walletId.trim();
   }
-} 
+}

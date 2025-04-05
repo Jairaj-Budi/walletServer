@@ -6,7 +6,7 @@ import { Wallet, WalletDocument } from '../schemas/wallet.schema';
 @Injectable()
 export class WalletRepository {
   constructor(
-    @InjectModel(Wallet.name) private walletModel: Model<WalletDocument>
+    @InjectModel(Wallet.name) private walletModel: Model<WalletDocument>,
   ) {}
 
   async create(data: Partial<Wallet>): Promise<Wallet> {
@@ -26,11 +26,15 @@ export class WalletRepository {
     return this.walletModel.findOne({ name }).lean();
   }
 
-  async updateBalance(id: string, balance: number, session?: any): Promise<Wallet | null> {
+  async updateBalance(
+    id: string,
+    balance: number,
+    session?: any,
+  ): Promise<Wallet | null> {
     return this.walletModel.findOneAndUpdate(
       { id },
       { $set: { balance } },
-      { new: true, session }
+      { new: true, session },
     );
   }
-} 
+}

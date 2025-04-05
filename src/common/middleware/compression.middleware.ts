@@ -16,4 +16,4 @@ export class CompressionMiddleware implements NestMiddleware {
   use(req: Request, res: Response, next: NextFunction) {
     this.compress(req, res, next);
   }
-} 
+}

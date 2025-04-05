@@ -20,39 +20,49 @@ import { TransactionCacheService } from './services/transaction-cache.service';
 import { ExportTransactionsDto } from './dtos/export-transaction.dto';
 
 @Injectable()
-export class TransactionService implements OnApplicationShutdown, OnModuleDestroy {
+export class TransactionService
+  implements OnApplicationShutdown, OnModuleDestroy
+{
   private readonly logger = new Logger(TransactionService.name);
 
   constructor(
-    @InjectModel(Transaction.name) private transactionModel: Model<TransactionDocument>,
+    @InjectModel(Transaction.name)
+    private transactionModel: Model<TransactionDocument>,
     @InjectConnection() private readonly connection: Connection,
     private readonly databaseTransactionService: DatabaseTransactionsService,
     private readonly cacheService: CacheService,
     @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
     private readonly securityService: TransactionSecurityService,
-    private readonly transactionCacheService: TransactionCacheService
+    private readonly transactionCacheService: TransactionCacheService,
   ) {}
 
-  async transact(walletId: string, transactionBody: any): Promise<TransactionDocument> {
+  async transact(
+    walletId: string,
+    transactionBody: any,
+  ): Promise<TransactionDocument> {
     const { amount, description } = transactionBody;
     const session: ClientSession = await this.connection.startSession();
     session.startTransaction();
 
     try {
-      const wallet = await this.databaseTransactionService.findWalletData(walletId, session);
+      const wallet = await this.databaseTransactionService.findWalletData(
+        walletId,
+        session,
+      );
       if (!wallet) {
         throw new Error('Wallet not found.');
       }
-      
+
       await this.updateWalletBalance(wallet, amount, session);
-      
-      const transaction = await this.databaseTransactionService.createTransaction(
-        walletId,
-        amount,
-        wallet.balance,
-        description,
-        session,
-      );
+
+      const transaction =
+        await this.databaseTransactionService.createTransaction(
+          walletId,
+          amount,
+          wallet.balance,
+          description,
+          session,
+        );
 
       await session.commitTransaction();
       return transaction;
@@ -68,7 +78,7 @@ export class TransactionService implements OnApplicationShutdown, OnModuleDestro
   async updateWalletBalance(
     wallet: WalletDocument,
     amount: number,
-    session: ClientSession
+    session: ClientSession,
   ): Promise<void> {
     // Clear cache keys related to wallets
     await this.cacheService.clearPattern('wallet_*');
@@ -83,15 +93,26 @@ export class TransactionService implements OnApplicationShutdown, OnModuleDestro
     skip: number,
     limit: number,
     sortColumn: string,
-    sortOrder: string
+    sortOrder: string,
   ): Promise<{ data: any[]; count: number }> {
-    const sortObj: Record<string, any> = { [sortColumn]: sortOrder === 'true' ? 1 : -1 };
+    const sortObj: Record<string, any> = {
+      [sortColumn]: sortOrder === 'true' ? 1 : -1,
+    };
 
     const [data, totalRecords] = await Promise.all([
       this.transactionModel
         .find(
           { walletId },
-          { _id: 0, id: 1, walletId: 1, amount: 1, balance: 1, description: 1, date: 1, type: 1 }
+          {
+            _id: 0,
+            id: 1,
+            walletId: 1,
+            amount: 1,
+            balance: 1,
+            description: 1,
+            date: 1,
+            type: 1,
+          },
         )
         .sort(sortObj)
         .skip(skip)
@@ -105,20 +126,26 @@ export class TransactionService implements OnApplicationShutdown, OnModuleDestro
   }
 
   async getTransactionsCount(walletId: string): Promise<number> {
-    const cachedCount = await this.transactionCacheService.getCachedCount(walletId);
+    const cachedCount =
+      await this.transactionCacheService.getCachedCount(walletId);
     if (cachedCount !== null) {
       return cachedCount;
     }
 
-    const count = Number(await this.transactionModel.countDocuments({ walletId }));
+    const count = Number(
+      await this.transactionModel.countDocuments({ walletId }),
+    );
     await this.transactionCacheService.setCachedCount(walletId, count);
     return count;
   }
 
-  async streamTransactionsToCSV(walletId: string, res: Response): Promise<void> {
+  async streamTransactionsToCSV(
+    walletId: string,
+    res: Response,
+  ): Promise<void> {
     const batchSize = 1000; // Process in chunks to manage memory
     let skip = 0;
-    
+
     while (true) {
       const transactions = await this.transactionModel
         .find({ walletId })
@@ -158,7 +185,10 @@ export class TransactionService implements OnApplicationShutdown, OnModuleDestro
         this.logger.log(`Database connection closed successfully.`);
       }
     } catch (error) {
-      this.logger.error(`Error closing database connection: ${error.message}`, error.stack);
+      this.logger.error(
+        `Error closing database connection: ${error.message}`,
+        error.stack,
+      );
     }
   }
 }

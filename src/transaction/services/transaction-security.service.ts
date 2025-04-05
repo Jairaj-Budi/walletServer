@@ -50,4 +50,4 @@ export class TransactionSecurityService {
       data.description.length <= 1000
     );
   }
-} 
+}
